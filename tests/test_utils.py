@@ -5,8 +5,10 @@ from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ForeignObjectRel
 from django.test import TestCase, override_settings
+from django.utils import six
 from django.utils.functional import Promise
 from django.utils.timezone import get_default_timezone
+from six import add_metaclass
 
 from django_filters import FilterSet
 from django_filters.exceptions import FieldLookupError
@@ -68,7 +70,8 @@ class RenameAttributesBaseTests(TestCase):
         with warnings.catch_warnings(record=True) as recorded:
             warnings.simplefilter('always')
 
-            class Example(metaclass=RenameAttributes):
+            @add_metaclass(RenameAttributes)
+            class Example(object):
                 old = SENTINEL
 
             # single warning for renamed attr on creation
@@ -78,7 +81,8 @@ class RenameAttributesBaseTests(TestCase):
         with warnings.catch_warnings(record=True) as recorded:
             warnings.simplefilter('ignore')
 
-            class Example(metaclass=RenameAttributes):
+            @add_metaclass(RenameAttributes)
+            class Example(object):
                 old = SENTINEL
 
             warnings.simplefilter('always')
@@ -96,7 +100,8 @@ class RenameAttributesBaseTests(TestCase):
         with warnings.catch_warnings(record=True) as recorded:
             warnings.simplefilter('ignore')
 
-            class Example(metaclass=RenameAttributes):
+            @add_metaclass(RenameAttributes)
+            class Example(object):
                 new = None
 
             warnings.simplefilter('always')
@@ -114,7 +119,8 @@ class RenameAttributesBaseTests(TestCase):
         with warnings.catch_warnings(record=True) as recorded:
             warnings.simplefilter('ignore')
 
-            class Example(metaclass=RenameAttributes):
+            @add_metaclass(RenameAttributes)
+            class Example(object):
                 new = None
 
             warnings.simplefilter('always')
@@ -135,7 +141,8 @@ class RenameAttributesBaseTests(TestCase):
         with warnings.catch_warnings(record=True):
             warnings.simplefilter('ignore')
 
-            class Example(metaclass=RenameAttributes):
+            @add_metaclass(RenameAttributes)
+            class Example(object):
                 new = None
 
             example = Example()
@@ -151,7 +158,8 @@ class RenameAttributesBaseTests(TestCase):
         with warnings.catch_warnings(record=True) as recorded:
             warnings.simplefilter('always')
 
-            class Example(metaclass=RenameAttributes):
+            @add_metaclass(RenameAttributes)
+            class Example(object):
                 def __getattr__(self, name):
                     if name == 'test':
                         return SENTINEL
@@ -171,7 +179,8 @@ class RenameAttributesBaseTests(TestCase):
                         return SENTINEL
                     return self.__getattribute__(name)
 
-            class Example(Parent, metaclass=RenameAttributes):
+
+            class Example(six.with_metaclass(RenameAttributes, Parent)):
                 pass
 
             example = Example()
@@ -182,11 +191,12 @@ class RenameAttributesBaseTests(TestCase):
         with warnings.catch_warnings(record=True) as recorded:
             warnings.simplefilter('always')
 
-            class Example(metaclass=RenameAttributes):
+            @add_metaclass(RenameAttributes)
+            class Example(object):
                 def __setattr__(self, name, value):
                     if name == 'test':
                         value = SENTINEL
-                    super().__setattr__(name, value)
+                    super(Example, self).__setattr__(name, value)
 
             example = Example()
             example.test = None

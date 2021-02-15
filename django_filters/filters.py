@@ -161,11 +161,11 @@ class ChoiceFilter(Filter):
 
     def __init__(self, *args, **kwargs):
         self.null_value = kwargs.get('null_value', settings.NULL_CHOICE_VALUE)
-        super(ChoiceFilter, super).__init__(*args, **kwargs)
+        super(ChoiceFilter, self).__init__(*args, **kwargs)
 
     def filter(self, qs, value):
         if value != self.null_value:
-            return super(ChoiceFilter, super).filter(qs, value)
+            return super(ChoiceFilter, self).filter(qs, value)
 
         qs = self.get_method(qs)(**{'%s__%s' % (self.field_name, self.lookup_expr): None})
         return qs.distinct() if self.distinct else qs

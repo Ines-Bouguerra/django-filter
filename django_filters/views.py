@@ -4,6 +4,7 @@ from django.views.generic.list import (
     MultipleObjectMixin,
     MultipleObjectTemplateResponseMixin
 )
+from six import add_metaclass
 
 from .constants import ALL_FIELDS
 from .filterset import filterset_factory
@@ -17,7 +18,8 @@ class FilterMixinRenames(RenameAttributesBase):
     )
 
 
-class FilterMixin(metaclass=FilterMixinRenames):
+@add_metaclass(FilterMixinRenames)
+class FilterMixin(object):
     """
     A mixin that provides a way to show and handle a FilterSet in a request.
     """

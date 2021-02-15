@@ -2,6 +2,7 @@ import warnings
 
 from django.template import loader
 from django.utils.deprecation import RenameMethodsBase
+from django.utils.six import add_metaclass
 
 from . import filters, filterset
 from .. import compat, utils
@@ -17,7 +18,8 @@ class RenameAttributes(utils.RenameAttributesBase, RenameMethodsBase):
     )
 
 
-class DjangoFilterBackend(metaclass=RenameAttributes):
+@add_metaclass(RenameAttributes)
+class DjangoFilterBackend(object):
     filterset_base = filterset.FilterSet
     raise_exception = True
 
