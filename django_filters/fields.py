@@ -26,7 +26,7 @@ class RangeField(forms.MultiValueField):
             fields = (
                 forms.DecimalField(),
                 forms.DecimalField())
-        super().__init__(fields, *args, **kwargs)
+        super(RangeField, self).__init__(fields, *args, **kwargs)
 
     def compress(self, data_list):
         if data_list:
@@ -41,7 +41,7 @@ class DateRangeField(RangeField):
         fields = (
             forms.DateField(),
             forms.DateField())
-        super().__init__(fields, *args, **kwargs)
+        super(DateRangeField, self).__init__(fields, *args, **kwargs)
 
     def compress(self, data_list):
         if data_list:
@@ -67,7 +67,7 @@ class DateTimeRangeField(RangeField):
         fields = (
             forms.DateTimeField(),
             forms.DateTimeField())
-        super().__init__(fields, *args, **kwargs)
+        super(DateTimeRangeField, self).__init__(fields, *args, **kwargs)
 
 
 class TimeRangeField(RangeField):
@@ -77,7 +77,7 @@ class TimeRangeField(RangeField):
         fields = (
             forms.TimeField(),
             forms.TimeField())
-        super().__init__(fields, *args, **kwargs)
+        super(TimeRangeField, self).__init__(fields, *args, **kwargs)
 
 
 class Lookup(namedtuple('Lookup', ('value', 'lookup_expr'))):
@@ -88,7 +88,7 @@ class Lookup(namedtuple('Lookup', ('value', 'lookup_expr'))):
                 "valid Lookup arguments. Return None instead."
             )
 
-        return super().__new__(cls, value, lookup_expr)
+        return super(Lookup, cls).__new__(cls, value, lookup_expr)
 
 
 class LookupChoiceField(forms.MultiValueField):
@@ -102,7 +102,7 @@ class LookupChoiceField(forms.MultiValueField):
         widget = LookupChoiceWidget(widgets=[f.widget for f in fields])
         kwargs['widget'] = widget
         kwargs['help_text'] = field.help_text
-        super().__init__(fields, *args, **kwargs)
+        super(LookupChoiceField, self).__init__(fields, *args, **kwargs)
 
     def compress(self, data_list):
         if len(data_list) == 2:
@@ -137,7 +137,7 @@ class IsoDateTimeField(forms.DateTimeField):
             if parsed is None:  # Continue with other formats if doesn't match
                 raise ValueError
             return handle_timezone(parsed)
-        return super().strptime(value, format)
+        return super(IsoDateTimeField, self).strptime(value, format)
 
 
 class BaseCSVField(forms.Field):
@@ -156,7 +156,7 @@ class BaseCSVField(forms.Field):
         widget = kwargs.get('widget') or self.widget
         kwargs['widget'] = self._get_widget_class(widget)
 
-        super().__init__(*args, **kwargs)
+        super(BaseCSVField, self).__init__(*args, **kwargs)
 
     def _get_widget_class(self, widget):
         # passthrough, allows for override
@@ -189,7 +189,7 @@ class BaseRangeField(BaseCSVField):
     }
 
     def clean(self, value):
-        value = super().clean(value)
+        value = super(BaseRangeField, self).clean(value)
 
         assert value is None or isinstance(value, list)
 
@@ -231,7 +231,7 @@ class ModelChoiceIterator(forms.models.ModelChoiceIterator):
     # empty choice, but before the remainder of the choices.
 
     def __iter__(self):
-        iterable = super().__iter__()
+        iterable = super(ModelChoiceIterator, self).__iter__()
 
         if self.field.empty_label is not None:
             yield next(iterable)
@@ -244,7 +244,7 @@ class ModelChoiceIterator(forms.models.ModelChoiceIterator):
 
     def __len__(self):
         add = 1 if self.field.null_label is not None else 0
-        return super().__len__() + add
+        return super(ModelChoiceIterator, self).__len__() + add
 
 
 class ChoiceIteratorMixin(object):
@@ -252,13 +252,13 @@ class ChoiceIteratorMixin(object):
         self.null_label = kwargs.pop('null_label', settings.NULL_CHOICE_LABEL)
         self.null_value = kwargs.pop('null_value', settings.NULL_CHOICE_VALUE)
 
-        super().__init__(*args, **kwargs)
+        super(ChoiceIteratorMixin, self).__init__(*args, **kwargs)
 
     def _get_choices(self):
-        return super()._get_choices()
+        return super(ChoiceIteratorMixin, self)._get_choices()
 
     def _set_choices(self, value):
-        super()._set_choices(value)
+        super(ChoiceIteratorMixin, self)._set_choices(value)
         value = self.iterator(self, self._choices)
 
         self._choices = self.widget.choices = value
@@ -271,7 +271,7 @@ class ChoiceField(ChoiceIteratorMixin, forms.ChoiceField):
 
     def __init__(self, *args, **kwargs):
         self.empty_label = kwargs.pop('empty_label', settings.EMPTY_CHOICE_LABEL)
-        super().__init__(*args, **kwargs)
+        super(ChoiceField, self).__init__(*args, **kwargs)
 
 
 class MultipleChoiceField(ChoiceIteratorMixin, forms.MultipleChoiceField):
@@ -279,7 +279,7 @@ class MultipleChoiceField(ChoiceIteratorMixin, forms.MultipleChoiceField):
 
     def __init__(self, *args, **kwargs):
         self.empty_label = None
-        super().__init__(*args, **kwargs)
+        super(MultipleChoiceField, self).__init__(*args, **kwargs)
 
 
 class ModelChoiceField(ChoiceIteratorMixin, forms.ModelChoiceField):
@@ -289,7 +289,7 @@ class ModelChoiceField(ChoiceIteratorMixin, forms.ModelChoiceField):
         # bypass the queryset value check
         if self.null_label is not None and value == self.null_value:
             return value
-        return super().to_python(value)
+        return super(ModelChoiceField, self).to_python(value)
 
 
 class ModelMultipleChoiceField(ChoiceIteratorMixin, forms.ModelMultipleChoiceField):
@@ -300,6 +300,6 @@ class ModelMultipleChoiceField(ChoiceIteratorMixin, forms.ModelMultipleChoiceFie
         if null:  # remove the null value and any potential duplicates
             value = [v for v in value if v != self.null_value]
 
-        result = list(super()._check_values(value))
+        result = list(super(ModelMultipleChoiceField, self)._check_values(value))
         result += [self.null_value] if null else []
         return result

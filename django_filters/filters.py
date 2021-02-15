@@ -64,8 +64,8 @@ class Filter(object):
     creation_counter = 0
     field_class = forms.Field
 
-    def __init__(self, field_name=None, lookup_expr='exact', *, label=None,
-                 method=None, distinct=False, exclude=False, **kwargs):
+    def __init__(self, field_name=None, label=None, method=None, lookup_expr='exact',
+                 distinct=False, exclude=False, **kwargs):
         self.field_name = field_name
         self.lookup_expr = lookup_expr
         self.label = label
@@ -161,11 +161,11 @@ class ChoiceFilter(Filter):
 
     def __init__(self, *args, **kwargs):
         self.null_value = kwargs.get('null_value', settings.NULL_CHOICE_VALUE)
-        super().__init__(*args, **kwargs)
+        super(ChoiceFilter, super).__init__(*args, **kwargs)
 
     def filter(self, qs, value):
         if value != self.null_value:
-            return super().filter(qs, value)
+            return super(ChoiceFilter, super).filter(qs, value)
 
         qs = self.get_method(qs)(**{'%s__%s' % (self.field_name, self.lookup_expr): None})
         return qs.distinct() if self.distinct else qs
@@ -210,7 +210,7 @@ class MultipleChoiceFilter(Filter):
         kwargs.setdefault('distinct', True)
         self.conjoined = kwargs.pop('conjoined', False)
         self.null_value = kwargs.get('null_value', settings.NULL_CHOICE_VALUE)
-        super().__init__(*args, **kwargs)
+        super(MultipleChoiceFilter, self).__init__(*args, **kwargs)
 
     def is_noop(self, qs, value):
         """
@@ -315,7 +315,7 @@ class QuerySetRequestMixin(object):
     """
     def __init__(self, *args, **kwargs):
         self.queryset = kwargs.get('queryset')
-        super().__init__(*args, **kwargs)
+        super(QuerySetRequestMixin, self).__init__(*args, **kwargs)
 
     def get_request(self):
         try:
@@ -338,7 +338,7 @@ class QuerySetRequestMixin(object):
         if queryset is not None:
             self.extra['queryset'] = queryset
 
-        return super().field
+        return super(QuerySetRequestMixin, self).field
 
 
 class ModelChoiceFilter(QuerySetRequestMixin, ChoiceFilter):
@@ -346,7 +346,7 @@ class ModelChoiceFilter(QuerySetRequestMixin, ChoiceFilter):
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('empty_label', settings.EMPTY_CHOICE_LABEL)
-        super().__init__(*args, **kwargs)
+        super(ModelChoiceFilter, self).__init__(*args, **kwargs)
 
 
 class ModelMultipleChoiceFilter(QuerySetRequestMixin, MultipleChoiceFilter):
@@ -371,7 +371,7 @@ class NumericRangeFilter(Filter):
                 self.lookup_expr = 'endswith'
                 value = value.stop
 
-        return super().filter(qs, value)
+        return super(NumericRangeFilter, self).filter(qs, value)
 
 
 class RangeFilter(Filter):
@@ -389,7 +389,7 @@ class RangeFilter(Filter):
                 self.lookup_expr = 'lte'
                 value = value.stop
 
-        return super().filter(qs, value)
+        return super(RangeFilter, self).filter(qs, value)
 
 
 def _truncate(dt):
@@ -447,7 +447,7 @@ class DateRangeFilter(ChoiceFilter):
 
         # null choice not relevant
         kwargs.setdefault('null_label', None)
-        super().__init__(choices=self.choices, *args, **kwargs)
+        super(DateRangeFilter, self).__init__(choices=self.choices, *args, **kwargs)
 
     def filter(self, qs, value):
         if not value:
@@ -477,7 +477,7 @@ class AllValuesFilter(ChoiceFilter):
         qs = self.model._default_manager.distinct()
         qs = qs.order_by(self.field_name).values_list(self.field_name, flat=True)
         self.extra['choices'] = [(o, o) for o in qs]
-        return super().field
+        return super(AllValuesFilter, self).field
 
 
 class AllValuesMultipleFilter(MultipleChoiceFilter):
@@ -486,7 +486,7 @@ class AllValuesMultipleFilter(MultipleChoiceFilter):
         qs = self.model._default_manager.distinct()
         qs = qs.order_by(self.field_name).values_list(self.field_name, flat=True)
         self.extra['choices'] = [(o, o) for o in qs]
-        return super().field
+        return super(AllValuesMultipleFilter, self).field
 
 
 class BaseCSVFilter(Filter):
@@ -497,7 +497,7 @@ class BaseCSVFilter(Filter):
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('help_text', _('Multiple values may be separated by commas.'))
-        super().__init__(*args, **kwargs)
+        super(BaseCSVFilter, self).__init__(*args, **kwargs)
 
         class ConcreteCSVField(self.base_field_class, self.field_class):
             pass
@@ -538,7 +538,7 @@ class BaseInFilter(BaseCSVFilter):
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('lookup_expr', 'in')
-        super().__init__(*args, **kwargs)
+        super(BaseInFilter, self).__init__(*args, **kwargs)
 
 
 class BaseRangeFilter(BaseCSVFilter):
@@ -546,7 +546,7 @@ class BaseRangeFilter(BaseCSVFilter):
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('lookup_expr', 'range')
-        super().__init__(*args, **kwargs)
+        super(BaseRangeFilter, self).__init__(*args, **kwargs)
 
 
 class LookupChoiceFilter(Filter):
@@ -623,7 +623,7 @@ class LookupChoiceFilter(Filter):
     @property
     def field(self):
         if not hasattr(self, '_field'):
-            inner_field = super().field
+            inner_field = super(LookupChoiceFilter, self).field
             lookups = self.get_lookup_choices()
 
             self._field = self.outer_class(
@@ -688,7 +688,7 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
         kwargs.setdefault('label', _('Ordering'))
         kwargs.setdefault('help_text', '')
         kwargs.setdefault('null_label', None)
-        super().__init__(*args, **kwargs)
+        super(OrderingFilter, self).__init__(*args, **kwargs)
 
     def get_ordering_value(self, param):
         descending = param.startswith('-')

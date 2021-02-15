@@ -1,3 +1,5 @@
+from __future__ import absolute_import, unicode_literals
+
 import copy
 from collections import OrderedDict
 
@@ -9,6 +11,7 @@ from django.db.models.fields.related import (
     ManyToOneRel,
     OneToOneRel
 )
+from django.utils import six
 
 from .conf import settings
 from .constants import ALL_FIELDS
@@ -66,7 +69,7 @@ class FilterSetMetaclass(type):
     def __new__(cls, name, bases, attrs):
         attrs['declared_filters'] = cls.get_declared_filters(bases, attrs)
 
-        new_class = super().__new__(cls, name, bases, attrs)
+        new_class = super(FilterSetMetaclass, cls).__new__(cls, name, bases, attrs)
         new_class._meta = FilterSetOptions(getattr(new_class, 'Meta', None))
         new_class.base_filters = new_class.get_filters()
 
@@ -181,7 +184,7 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
 class BaseFilterSet(object):
     FILTER_DEFAULTS = FILTER_FOR_DBFIELD_DEFAULTS
 
-    def __init__(self, data=None, queryset=None, *, request=None, prefix=None):
+    def __init__(self, data=None, queryset=None, request=None, prefix=None):
         if queryset is None:
             queryset = self._meta.model._default_manager.all()
         model = queryset.model
@@ -247,7 +250,7 @@ class BaseFilterSet(object):
         """
         fields = OrderedDict([
             (name, filter_.field)
-            for name, filter_ in self.filters.items()])
+            for name, filter_ in six.iteritems(self.filters)])
 
         return type(str('%sForm' % self.__class__.__name__),
                     (self._meta.form,), fields)
@@ -449,7 +452,7 @@ class BaseFilterSet(object):
         return str('%s%sFilter' % (type_name, lookup_name))
 
 
-class FilterSet(BaseFilterSet, metaclass=FilterSetMetaclass):
+class FilterSet(six.with_metaclass(FilterSetMetaclass, BaseFilterSet)):
     pass
 
 

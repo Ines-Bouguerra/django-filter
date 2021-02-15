@@ -9,7 +9,7 @@ from django.db.models.constants import LOOKUP_SEP
 from django.db.models.expressions import Expression
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.fields.related import ForeignObjectRel, RelatedField
-from django.utils import timezone
+from django.utils import six, timezone
 from django.utils.encoding import force_text
 from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
@@ -25,7 +25,7 @@ class MigrationNotice(DeprecationWarning):
     url = 'https://django-filter.readthedocs.io/en/master/guide/migration.html'
 
     def __init__(self, message):
-        super().__init__('%s See: %s' % (message, self.url))
+        super(MigrationNotice, self).__init__('%s See: %s' % (message, self.url))
 
 
 class RenameAttributesBase(type):
@@ -50,7 +50,7 @@ class RenameAttributesBase(type):
         cls_getattr = attrs.pop('__getattr__', None)
         cls_setattr = attrs.pop('__setattr__', None)
 
-        new_class = super().__new__(metacls, name, bases, attrs)
+        new_class = super(RenameAttributesBase, metacls).__new__(metacls, name, bases, attrs)
 
         def __getattr__(self, name):
             name = type(self).get_name(name)
@@ -92,10 +92,10 @@ class RenameAttributesBase(type):
         return name
 
     def __getattr__(metacls, name):
-        return super().__getattribute__(metacls.get_name(name))
+        return super(RenameAttributesBase, metacls).__getattribute__(metacls.get_name(name))
 
     def __setattr__(metacls, name, value):
-        return super().__setattr__(metacls.get_name(name), value)
+        return super(RenameAttributesBase, metacls).__setattr__(metacls.get_name(name), value)
 
 
 def try_dbfield(fn, field_class):
@@ -215,7 +215,7 @@ def resolve_field(model_field, lookup_expr):
             lhs = query.try_transform(*args)
             lookups = lookups[1:]
     except FieldError as e:
-        raise FieldLookupError(model_field, lookup_expr) from e
+        six.raise_from(FieldLookupError(model_field, lookup_expr), e)
 
 
 def handle_timezone(value, is_dst=None):
