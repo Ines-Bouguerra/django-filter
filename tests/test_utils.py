@@ -172,7 +172,7 @@ class RenameAttributesBaseTests(TestCase):
         with warnings.catch_warnings(record=True) as recorded:
             warnings.simplefilter('always')
 
-            class Parent:
+            class Parent(object):
                 def __getattr__(self, name):
                     if name == 'test':
                         return SENTINEL
