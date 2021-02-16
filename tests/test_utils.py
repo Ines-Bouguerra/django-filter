@@ -51,7 +51,7 @@ class RenameAttributes(RenameAttributesBase):
     )
 
 
-class SENTINEL:
+class SENTINEL(object):
     pass
 
 

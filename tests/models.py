@@ -1,3 +1,5 @@
+from __future__ import absolute_import, unicode_literals
+
 from django import forms
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -36,7 +38,7 @@ class SubnetMaskField(models.Field):
     def formfield(self, **kwargs):
         defaults = {'form_class': forms.GenericIPAddressField}
         defaults.update(kwargs)
-        return super().formfield(**defaults)
+        return super(SubnetMaskField, self).formfield(**defaults)
 
 
 class User(models.Model):

@@ -1,3 +1,5 @@
+from __future__ import absolute_import, unicode_literals
+
 from collections import OrderedDict
 from datetime import timedelta
 
@@ -5,6 +7,7 @@ from django import forms
 from django.db.models import Q
 from django.db.models.constants import LOOKUP_SEP
 from django.forms.utils import pretty_name
+from django.utils import six
 from django.utils.itercompat import is_iterable
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
@@ -602,7 +605,7 @@ class LookupChoiceFilter(Filter):
             ('has_key', 'Has key')
 
         """
-        if isinstance(lookup, str):
+        if isinstance(lookup, six.string_types):
             return (lookup, pretty_name(lookup))
         return (lookup[0], lookup[1])
 
@@ -680,7 +683,7 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
         fields = self.normalize_fields(fields)
         field_labels = kwargs.pop('field_labels', {})
 
-        self.param_map = {v: k for k, v in fields.items()}
+        self.param_map = {v: k for k, v in six.iteritems(fields)}
 
         if 'choices' not in kwargs:
             kwargs['choices'] = self.build_choices(fields, field_labels)
@@ -718,13 +721,13 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
             "'fields' must be an iterable (e.g., a list, tuple, or mapping)."
 
         # fields is an iterable of field names
-        assert all(isinstance(field, str) or
+        assert all(isinstance(field, six.string_types) or
                    is_iterable(field) and len(field) == 2  # may need to be wrapped in parens
                    for field in fields), \
             "'fields' must contain strings or (field name, param name) pairs."
 
         return OrderedDict([
-            (f, f) if isinstance(f, str) else f for f in fields
+            (f, f) if isinstance(f, six.string_types) else f for f in fields
         ])
 
     def build_choices(self, fields, labels):

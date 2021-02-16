@@ -3,7 +3,7 @@ import mock
 from django.db import models
 
 
-class MockQuerySet:
+class MockQuerySet(object):
     """
     Generate a mock that is suitably similar to a QuerySet
     """
